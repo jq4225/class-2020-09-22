@@ -82,11 +82,13 @@ sep_new <-
 
 
 Before we start on the model, Wisdom suggests we should:
-
-
-
+- Identify what data we want to know
+- Find course enrollment numbers from September 1
+- Find course enrollment numbers from today
 
 After we have a model, Temperance suggests we should:
+- External validity limited -- we can't generalize outside Harvard
+- Internal validity -- 
 
 
 
@@ -94,6 +96,34 @@ After we have a model, Temperance suggests we should:
 
 **Prompt:** Which classes had the biggest increases and decreases in undergraduate enrollments between September 1 and today? Make a graphic that shows the 5 biggest increases and decreases. Make it look nice.
 
+```{r}
+library(ggthemes)
+sep <- inner_join(sep_old, sep_new, by = 'id')
+sep_decreases <- sep %>%
+  select(-title.y, -department.y, -name.y) %>%
+  mutate(difference = u_grad.y - u_grad.x) %>%
+  arrange(difference) %>%
+  slice(1:5)
+
+sep_increases <- sep %>%
+  select(-title.y, -department.y, -name.y) %>%
+  mutate(difference = u_grad.y - u_grad.x) %>%
+  arrange(desc(difference)) %>%
+  slice(1:5)
+
+sep_total <- rbind(sep_decreases, sep_increases) %>%
+  arrange(difference)
+
+sep_total %>%
+  ggplot(aes(x = reorder(title.x, -difference), y = difference, 
+             fill = ifelse(difference > 0, "red", "dodgerblue"))) +
+  geom_col() +
+  theme_economist() +
+  theme(axis.text.x = element_text(angle = 45, size = 7, hjust = -0.1), 
+        legend.position = "none") +
+  labs(y = "Change in Enrollment", x = "Course Code",
+       title = "Change in Course Enrollment from 9/1/2020 to 9/22/2020")
+```
 
 
 
